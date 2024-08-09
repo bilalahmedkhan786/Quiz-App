@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get_core/get_core.dart';
 import 'package:get/get_navigation/get_navigation.dart';
+import 'package:mcqs_app/auth/firebase_auth.dart';
 import 'package:mcqs_app/pages/login.dart';
+import 'package:mcqs_app/user/screens/user_dashboard.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -13,8 +16,12 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  late String _email, _password, _confirmPassword;
-
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  late String _name, _email, _password;
+  Auth myauth = Auth();
+  bool _obscurePassword = true;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,7 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color.fromARGB(229, 16, 15, 15),
+              Color.fromARGB(246, 16, 15, 15),
               Color.fromARGB(255, 0, 0, 0)
             ],
             begin: Alignment.topRight,
@@ -46,6 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
+                  controller: nameController,
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.person_outline),
                     labelText: 'Username',
@@ -58,14 +66,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return 'Please enter your username';
                     }
                     return null;
                   },
-                  onSaved: (value) => _email = value!,
+                  onSaved: (value) => _name = value!,
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
+                  controller: emailController,
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.email_outlined),
                     labelText: 'Email',
@@ -79,6 +88,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
+                    } else if (!value.contains('@')) {
+                      return 'Please enter a valid email';
                     }
                     return null;
                   },
@@ -86,9 +97,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 20),
                 TextFormField(
+                  controller: passwordController,
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: const Icon(Icons.visibility_off),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                    ),
                     labelText: 'Password',
                     isDense: true,
                     filled: true,
@@ -97,7 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.circular(13),
                     ),
                   ),
-                  obscureText: true,
+                  obscureText: _obscurePassword,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your password';
@@ -111,14 +134,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 140, vertical: 15),
-                    backgroundColor: Color.fromARGB(255, 244, 67, 54),
+                    backgroundColor: Color.fromARGB(255, 0, 58, 106),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
+                      User? user =
+                          await myauth.register(_name, _email, _password);
+                      if (user != null) {
+                        Get.snackbar("User", "Sign up succesfull",
+                            colorText: Colors.white,
+                            backgroundColor: Colors.blue);
+                      } else {}
                       // Handle registration
                     }
                   },
@@ -148,7 +178,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         color: Color.fromARGB(37, 171, 157, 157),
                       ),
                       child: GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Get.to(UserDashboard());
+                        },
                         child: Image.asset(
                           'assets/google.png',
                         ),

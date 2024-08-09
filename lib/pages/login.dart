@@ -1,8 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get_core/get_core.dart';
 import 'package:get/get_navigation/get_navigation.dart';
+import 'package:mcqs_app/admin/admin_dashboard.dart';
+import 'package:mcqs_app/auth/firebase_auth.dart';
 import 'package:mcqs_app/pages/register.dart';
+import 'package:mcqs_app/user/screens/user_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,6 +18,9 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   late String _email, _password;
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  Auth myauth = Auth();
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
           gradient: LinearGradient(
             // colors: [Colors.lightBlue, Colors.blueAccent],
             colors: [
-              Color.fromARGB(229, 16, 15, 15),
+              Color.fromARGB(246, 16, 15, 15),
               Color.fromARGB(255, 0, 0, 0)
             ],
             begin: Alignment.topRight,
@@ -48,6 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 20),
                   TextFormField(
+                    controller: emailController,
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.email_outlined),
                       labelText: 'Email',
@@ -68,6 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 20),
                   TextFormField(
+                    controller: passwordController,
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.lock_outline),
                       labelText: 'Password',
@@ -90,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 20),
                   InkWell(
                     onTap: () {},
-                    child: Text(
+                    child: const Text(
                       "Forgot your Password?",
                       style: TextStyle(color: Colors.blue),
                     ),
@@ -100,15 +109,35 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 150, vertical: 15),
-                      backgroundColor: Color.fromARGB(255, 244, 67, 54),
+                      backgroundColor: Color.fromARGB(255, 1, 30, 53),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        _formKey.currentState!.save();
-                        // Handle login
+                        String email = emailController.text.trim();
+                        String password = passwordController.text.trim();
+
+                        try {
+                          UserCredential userCredential = await FirebaseAuth
+                              .instance
+                              .signInWithEmailAndPassword(
+                                  email: email, password: password);
+
+                          // Check if the user is the admin
+                          if (email == 'admin@gmail.com' &&
+                              password == 'admin123') {
+                            Get.to(AdminDashboard());
+                          } else {
+                            Get.to(UserDashboard());
+                          }
+                        } on FirebaseAuthException catch (e) {
+                          // Handle error, show a message, etc.
+                          Get.snackbar("Error", e.message!,
+                              colorText: Colors.white,
+                              backgroundColor: Color.fromARGB(255, 0, 58, 106));
+                        }
                       }
                     },
                     child: const Text(
