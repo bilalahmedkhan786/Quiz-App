@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mcqs_app/admin/manage_users/manage_user.dart';
 import 'package:mcqs_app/admin/quizzes/manage_quizs.dart';
-import 'package:mcqs_app/auth/firebase_auth.dart';
+import 'package:mcqs_app/shared/auth/firebase_auth.dart';
 
 class AdminDashboard extends StatelessWidget {
   Auth myauth = Auth();
@@ -15,7 +15,7 @@ class AdminDashboard extends StatelessWidget {
           color: Colors.white,
         ),
         backgroundColor: Colors.black87,
-        title: Center(
+        title: const Center(
           child: Text(
             'Admin Dashboard',
             style: TextStyle(color: Colors.white),
